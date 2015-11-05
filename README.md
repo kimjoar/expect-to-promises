@@ -3,6 +3,13 @@ expect-to-promises
 
 Promise assertions for [expect-to](https://github.com/kjbekkelund/expect-to).
 
+Installation
+------------
+
+```
+npm install --save-dev expect-to-promises
+```
+
 Assertions
 ----------
 
