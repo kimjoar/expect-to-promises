@@ -13,6 +13,12 @@ describe('expect-to-promises', () => {
       }).to(throws('Invariant Violation: `actual` is not a promise'))
     })
 
+    it('throws when eventually is wrapped in a not', () => {
+      expect(() => {
+        expect('foo').to(not(eventually(equal('foo'))))
+      }).to(throws("Invariant Violation: `eventually` can't be wrapped in a `not`, use `eventually(not(...))` instead"))
+    })
+
     context('when resolved', () => {
       it('handles inner assertion', (done) => {
         const exp = Promise.resolve('foo')
