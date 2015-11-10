@@ -13,4 +13,24 @@ const eventually = (test) => (obj) => {
   )
 }
 
-export { eventually }
+const beFulfilled = ({ actual, assert, not }) => {
+  invariant(!not, 'Use `beRejected` instead of `not(beFulfilled)`')
+  invariant(isPromise(actual), '`actual` is not a promise')
+
+  return actual.then(
+    () => undefined,
+    () => assert(false, 'Expected promise to be fulfilled')
+  )
+}
+
+const beRejected = ({ actual, assert, stringify, not }) => {
+  invariant(!not, 'Use `beFulfilled` instead of `not(beRejected)`')
+  invariant(isPromise(actual), '`actual` is not a promise')
+
+  return actual.then(
+    (val) => assert(false, `Expected promise to be rejected, but resolved to ${stringify(val)}`),
+    () => undefined
+  )
+}
+
+export { eventually, beFulfilled, beRejected }

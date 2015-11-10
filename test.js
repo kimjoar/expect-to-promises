@@ -3,7 +3,7 @@
 import expect from 'expect-to'
 import Promise from 'bluebird'
 import { equal, not, throws } from 'expect-to-core'
-import { eventually } from './src'
+import { eventually, beFulfilled, beRejected } from './src'
 
 describe('expect-to-promises', () => {
   describe('eventually', () => {
@@ -48,6 +48,48 @@ describe('expect-to-promises', () => {
         expect(exp).to(eventually(equal('foo')))
           .catch(e => {
             expect(e.message).to(equal('Expected to eventually resolve, but was rejected'))
+            done()
+          })
+      })
+    })
+  })
+
+  describe('beFulfilled', () => {
+    context('when fulfilled', () => {
+      it('succeeds', (done) => {
+        const exp = Promise.resolve('foo')
+        expect(exp).to(beFulfilled)
+          .then(done)
+      })
+    })
+
+    context('when rejected', () => {
+      it('fails', (done) => {
+        const exp = Promise.reject(new Error('test'))
+        expect(exp).to(beFulfilled)
+          .catch(e => {
+            expect(e.message).to(equal('Expected promise to be fulfilled'))
+            done()
+          })
+      })
+    })
+  })
+
+  describe('beRejected', () => {
+    context('when rejected', () => {
+      it('succeeds', (done) => {
+        const exp = Promise.reject(new Error('test'))
+        expect(exp).to(beRejected)
+          .then(done)
+      })
+    })
+
+    context('when fulfilled', () => {
+      it('succeeds', (done) => {
+        const exp = Promise.resolve('foo')
+        expect(exp).to(beRejected)
+          .catch(e => {
+            expect(e.message).to(equal('Expected promise to be rejected, but resolved to "foo"'))
             done()
           })
       })

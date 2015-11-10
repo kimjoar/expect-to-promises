@@ -13,8 +13,6 @@ npm install --save-dev expect-to-promises
 Assertions
 ----------
 
-For now we only have the first basic assertion in place:
-
 - `eventually`
 
   ```javascript
@@ -26,3 +24,16 @@ For now we only have the first basic assertion in place:
   const obj = Promise.resolve({ name: 'kim' });
   expect(obj).to(eventually(deepEqual({ name: 'kim' })));
   ```
+- `beFulfilled`
+
+  ```javascript
+  const foo = Promise.resolve('foo');
+  expect(foo).to(beFulfilled);
+  ```
+- `beRejected`
+
+  ```javascript
+  const err = Promise.reject(new Error('bar'));
+  expect(err).to(beRejected);
+  ```
+
