@@ -73,6 +73,13 @@ describe('expect-to-promises', () => {
           })
       })
     })
+
+    it('throws when wrapped in `not`', () => {
+      expect(() => {
+        const exp = Promise.resolve('foo')
+        expect(exp).to(not(beFulfilled))
+      }).to(throws('Invariant Violation: Use `beRejected` instead of `not(beFulfilled)`'))
+    })
   })
 
   describe('beRejected', () => {
@@ -93,6 +100,13 @@ describe('expect-to-promises', () => {
             done()
           })
       })
+    })
+
+    it('throws when wrapped in `not`', () => {
+      expect(() => {
+        const exp = Promise.resolve('foo')
+        expect(exp).to(not(beRejected))
+      }).to(throws('Invariant Violation: Use `beFulfilled` instead of `not(beRejected)`'))
     })
   })
 })
