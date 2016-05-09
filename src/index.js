@@ -23,12 +23,12 @@ const beFulfilled = ({ actual, assert, not }) => {
   )
 }
 
-const beRejected = ({ actual, assert, stringify, not }) => {
+const beRejected = ({ actual, assert, not }) => {
   invariant(!not, 'Use `beFulfilled` instead of `not(beRejected)`')
   invariant(isPromise(actual), '`actual` is not a promise')
 
   return actual.then(
-    (val) => assert(false, `Expected promise to be rejected, but resolved to ${stringify(val)}`),
+    (val) => assert(false, ['Expected promise to be rejected, but resolved to %j', val]),
     () => undefined
   )
 }

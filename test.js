@@ -1,112 +1,189 @@
 /* eslint-env mocha */
 
-import expect from 'expect-to'
+import assert from 'assert'
+import sinon from 'sinon'
 import Promise from 'bluebird'
-import { equal, not, throws } from 'expect-to-core'
-import { eventually, beFulfilled, beRejected } from './src'
+import { not, be } from 'expect-to-core'
+import {
+  eventually,
+  beFulfilled,
+  beRejected
+} from './src'
+
+const extractAssert = (spy) => spy.args[0][0]
+const noopAssert = { not: {} }
 
 describe('expect-to-promises', () => {
   describe('eventually', () => {
     it('throws when not given a promise', () => {
-      expect(() => {
-        expect('foo').to(eventually(equal('foo')))
-      }).to(throws('Invariant Violation: `actual` is not a promise'))
+      assert.throws(
+        () => {
+          const spy = sinon.spy()
+          eventually()({
+            actual: null,
+            assert: spy
+          })
+        },
+        (err) => err.message === 'Invariant Violation: `actual` is not a promise'
+      )
     })
 
     it('throws when eventually is wrapped in a not', () => {
-      expect(() => {
-        expect('foo').to(not(eventually(equal('foo'))))
-      }).to(throws("Invariant Violation: `eventually` can't be wrapped in a `not`, use `eventually(not(...))` instead"))
+      assert.throws(
+        () => {
+          not(eventually())({
+            actual: null,
+            assert: noopAssert
+          })
+        },
+        (err) => err.message === "Invariant Violation: `eventually` can't be wrapped in a `not`, use `eventually(not(...))` instead"
+      )
     })
 
     context('when resolved', () => {
-      it('handles inner assertion', (done) => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(eventually(equal('foo')))
-          .then(done)
+      it('unwraps resolved value', (done) => {
+        const assertion = ({ actual }) => {
+          assert.equal(actual, 'foo')
+          done()
+        }
+
+        eventually(assertion)({
+          actual: Promise.resolve('foo')
+        })
       })
 
-      it('handles inner assertion with not', (done) => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(eventually(not(equal('bar'))))
-          .then(done)
+      it('allows assertion within eventually', () => {
+        const spy = sinon.spy()
+
+        return eventually(be('foo'))({
+          actual: Promise.resolve('foo'),
+          assert: spy
+        }).then(() => {
+          sinon.assert.calledWithExactly(
+            spy,
+            true,
+            ['Expected %j to be %j', 'foo', 'foo'],
+            ['Expected %j not to be %j', 'foo', 'foo'],
+            'foo'
+          )
+        })
       })
 
-      it('handles inner assertion', (done) => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(eventually(equal('bar')))
-          .catch(e => {
-            expect(e.message).to(equal('Expected "foo" to equal "bar"'))
-            done()
-          })
+      it('handles inner assertion with not', () => {
+        const spy = sinon.spy()
+
+        const _assert = {
+          not: spy
+        }
+
+        return eventually(not(be('foo')))({
+          actual: Promise.resolve('bar'),
+          assert: _assert
+        }).then(() => {
+          assert.equal(extractAssert(spy), false)
+        })
       })
     })
 
     context('when rejected', () => {
-      it('rejects with the expected error', (done) => {
-        const exp = Promise.reject(new Error('test'))
-        expect(exp).to(eventually(equal('foo')))
-          .catch(e => {
-            expect(e.message).to(equal('Expected to eventually resolve, but was rejected'))
-            done()
-          })
+      it('rejects with the expected error', () => {
+        const spy = sinon.spy()
+
+        return eventually(be('foo'))({
+          actual: Promise.reject(new Error('test')),
+          assert: spy
+        }).then(() => {
+          sinon.assert.calledWithExactly(
+            spy,
+            false,
+            'Expected to eventually resolve, but was rejected'
+          )
+        })
       })
     })
   })
 
   describe('beFulfilled', () => {
     context('when fulfilled', () => {
-      it('succeeds', (done) => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(beFulfilled)
-          .then(done)
+      it('succeeds', () => {
+        const spy = sinon.spy()
+
+        return beFulfilled({
+          actual: Promise.resolve('foo'),
+          assert: spy
+        })
       })
     })
 
     context('when rejected', () => {
-      it('fails', (done) => {
-        const exp = Promise.reject(new Error('test'))
-        expect(exp).to(beFulfilled)
-          .catch(e => {
-            expect(e.message).to(equal('Expected promise to be fulfilled'))
-            done()
-          })
+      it('fails', () => {
+        const spy = sinon.spy()
+
+        return beFulfilled({
+          actual: Promise.reject(new Error('test')),
+          assert: spy
+        }).then(() => {
+          sinon.assert.calledWithExactly(
+            spy,
+            false,
+            'Expected promise to be fulfilled'
+          )
+        })
       })
     })
 
     it('throws when wrapped in `not`', () => {
-      expect(() => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(not(beFulfilled))
-      }).to(throws('Invariant Violation: Use `beRejected` instead of `not(beFulfilled)`'))
+      assert.throws(
+        () => {
+          not(beFulfilled)({
+            actual: Promise.resolve('foo'),
+            assert: noopAssert
+          })
+        },
+        (err) => err.message === 'Invariant Violation: Use `beRejected` instead of `not(beFulfilled)`'
+      )
     })
   })
 
   describe('beRejected', () => {
     context('when rejected', () => {
-      it('succeeds', (done) => {
-        const exp = Promise.reject(new Error('test'))
-        expect(exp).to(beRejected)
-          .then(done)
+      it('succeeds', () => {
+        const spy = sinon.spy()
+
+        return beRejected({
+          actual: Promise.reject(new Error('foo')),
+          assert: spy
+        })
       })
     })
 
     context('when fulfilled', () => {
-      it('succeeds', (done) => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(beRejected)
-          .catch(e => {
-            expect(e.message).to(equal('Expected promise to be rejected, but resolved to "foo"'))
-            done()
-          })
+      it('fails', () => {
+        const spy = sinon.spy()
+
+        return beRejected({
+          actual: Promise.resolve('foo'),
+          assert: spy
+        }).then(() => {
+          sinon.assert.calledWithExactly(
+            spy,
+            false,
+            ['Expected promise to be rejected, but resolved to %j', 'foo']
+          )
+        })
       })
     })
 
     it('throws when wrapped in `not`', () => {
-      expect(() => {
-        const exp = Promise.resolve('foo')
-        expect(exp).to(not(beRejected))
-      }).to(throws('Invariant Violation: Use `beFulfilled` instead of `not(beRejected)`'))
+      assert.throws(
+        () => {
+          not(beRejected)({
+            actual: Promise.resolve('foo'),
+            assert: noopAssert
+          })
+        },
+        (err) => err.message === 'Invariant Violation: Use `beFulfilled` instead of `not(beRejected)`'
+      )
     })
   })
 })
