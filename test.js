@@ -24,7 +24,7 @@ describe('expect-to-promises', () => {
             assert: spy
           })
         },
-        (err) => err.message === 'Invariant Violation: `actual` is not a promise'
+        (err) => err.message === '`actual` is not a promise'
       )
     })
 
@@ -36,7 +36,7 @@ describe('expect-to-promises', () => {
             assert: noopAssert
           })
         },
-        (err) => err.message === "Invariant Violation: `eventually` can't be wrapped in a `not`, use `eventually(not(...))` instead"
+        (err) => err.message === "`eventually` can't be wrapped in a `not`, use `eventually(not(...))` instead"
       )
     })
 
@@ -140,7 +140,7 @@ describe('expect-to-promises', () => {
             assert: noopAssert
           })
         },
-        (err) => err.message === 'Invariant Violation: Use `beRejected` instead of `not(beFulfilled)`'
+        (err) => err.message === 'Use `beRejected` instead of `not(beFulfilled)`'
       )
     })
   })
@@ -182,7 +182,7 @@ describe('expect-to-promises', () => {
             assert: noopAssert
           })
         },
-        (err) => err.message === 'Invariant Violation: Use `beFulfilled` instead of `not(beRejected)`'
+        (err) => err.message === 'Use `beFulfilled` instead of `not(beRejected)`'
       )
     })
   })
